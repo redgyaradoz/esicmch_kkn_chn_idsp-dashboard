@@ -43,6 +43,13 @@ ui <- page_fluid(
       fileInput("upload", "Upload Raw Excel File (.xls or .xlsx) or Raw .aspx file", 
                 accept = c(".xls", ".xlsx", ".aspx")),
       
+      # Privacy & Security Assurance Badge
+      div(
+        class = "p-2 mb-3 rounded",
+        style = "background-color: #f8f9fa; border: 1px solid #d1e7dd; border-left: 4px solid #198754; font-size: 0.85em; color: #0f5132;",
+        HTML("<strong>🔒 100% Private & Secure:</strong><br>Processed entirely inside your computer via WebAssembly. Data is <u>never</u> sent out or uploaded to any server or cloud.")
+      ),
+      
       # Download buttons (disabled until data is processed)
       uiOutput("download_ui"),
       
@@ -73,9 +80,23 @@ ui <- page_fluid(
       div(
         class = "mt-auto", 
         style = "background-color: #800000; color: #ffffff; border: 2px solid #4a0000; border-radius: 5px; padding: 12px; font-size: 0.85em; text-align: center;",
-        "This website is made by Dr. D. Vignesh and Dr. Nalam Middleton A., from Department of Community Medicine, ESIC Medical College and Hospital, KK Nagar, Chennai"
+        HTML("This website is made for institutional use by <strong>Dr. D. Vignesh</strong> and <strong>Dr. Nalam Middleton A.</strong>, from Department of Community Medicine, ESIC Medical College and Hospital, KK Nagar, Chennai"),
+        br(),
+        tags$a(
+          href = "https://github.com/redgyaradoz/esicmch_kkn_chn_idsp-dashboard/tree/main", 
+          target = "_blank", 
+          style = "color: #ffcccc; text-decoration: underline; margin-right: 15px;",
+          "GitHub Repository"
+        ),
+        "|",
+        tags$a(
+          href = "https://creativecommons.org/licenses/by-nc/4.0/", 
+          target = "_blank", 
+          style = "color: #ffcccc; text-decoration: underline; margin-left: 15px;",
+          "CC BY-NC 4.0 License"
+        )
       )
-    ),
+    ), # <-- Properly closes sidebar()
     
     # --- MAIN PANEL CONTENTS ---
     # Epidemiological Summary Metrics
