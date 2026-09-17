@@ -210,6 +210,8 @@ server <- function(input, output, session) {
   
   # --- RENDER TABLES WITH CLIENT-SIDE DOWNLOAD BUTTONS ---
   
+  # --- RENDER TABLES WITH CLIENT-SIDE DOWNLOAD BUTTONS ---
+  
   output$table_idsp <- renderDT({
     req(filtered_data())
     datatable(filtered_data(), 
@@ -217,7 +219,7 @@ server <- function(input, output, session) {
               options = list(
                 pageLength = 10, 
                 scrollX = TRUE,
-                dom = 'Bfrtip', # 'B' stands for Buttons
+                dom = 'Bfrtip', 
                 buttons = list(
                   list(
                     extend = 'csv', 
@@ -228,7 +230,7 @@ server <- function(input, output, session) {
                 )
               ),
               rownames = FALSE)
-  })
+  }, server = FALSE) # <--- ADD THIS TO EXPORT ALL ROWS
   
   output$table_raw <- renderDT({
     req(base_data())
@@ -248,7 +250,7 @@ server <- function(input, output, session) {
                 )
               ),
               rownames = FALSE)
-  })
+  }, server = FALSE) # <--- ADD THIS TO EXPORT ALL ROWS
 }
 
 # Run the application 
