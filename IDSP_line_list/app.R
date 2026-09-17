@@ -56,8 +56,6 @@ ui <- page_fluid(
         HTML("<strong>🔒 100% Private & Secure:</strong><br>Processed entirely in your browser via WebAssembly. Patient data is <u>never</u> uploaded to any server or cloud.")
       ),
       
-      # Download buttons (disabled until data is processed)
-      uiOutput("download_ui"),
       
       hr(),
       
@@ -210,49 +208,47 @@ server <- function(input, output, session) {
     nrow(filtered_data())
   })
   
-  # --- RENDER TABLES & DOWNLOAD BUTTONS ---
+  # --- RENDER TABLES WITH CLIENT-SIDE DOWNLOAD BUTTONS ---
   
   output$table_idsp <- renderDT({
     req(filtered_data())
     datatable(filtered_data(), 
-              options = list(pageLength = 10, scrollX = TRUE),
+              extensions = 'Buttons',
+              options = list(
+                pageLength = 10, 
+                scrollX = TRUE,
+                dom = 'Bfrtip', # 'B' stands for Buttons
+                buttons = list(
+                  list(
+                    extend = 'csv', 
+                    text = '📥 Download IDSP Line List (CSV)', 
+                    filename = paste0("IDSP_line_list_", Sys.Date()),
+                    className = 'btn btn-primary'
+                  )
+                )
+              ),
               rownames = FALSE)
   })
   
   output$table_raw <- renderDT({
     req(base_data())
     datatable(base_data(), 
-              options = list(pageLength = 10, scrollX = TRUE),
+              extensions = 'Buttons',
+              options = list(
+                pageLength = 10, 
+                scrollX = TRUE,
+                dom = 'Bfrtip',
+                buttons = list(
+                  list(
+                    extend = 'csv', 
+                    text = '📥 Download Full Cleaned Data (CSV)', 
+                    filename = paste0("Full_Cleaned_Raw_Data_", Sys.Date()),
+                    className = 'btn btn-outline-primary'
+                  )
+                )
+              ),
               rownames = FALSE)
   })
-  
-  output$download_ui <- renderUI({
-    req(filtered_data(), base_data())
-    div(class = "d-grid gap-2",
-        downloadButton("download_idsp", "Download IDSP Line List", class = "btn-primary"),
-        downloadButton("download_raw", "Download Full Cleaned Data", class = "btn-outline-primary")
-    )
-  })
-  
-  output$download_idsp <- downloadHandler(
-    filename = function() {
-      random_num <- sprintf("%05d", sample(0:99999, 1))
-      paste0("IDSP_line_list_", Sys.Date(), "_", random_num, ".csv")
-    },
-    content = function(file) {
-      write.csv(filtered_data(), file, row.names = FALSE)
-    }
-  )
-  
-  output$download_raw <- downloadHandler(
-    filename = function() {
-      random_num <- sprintf("%05d", sample(0:99999, 1))
-      paste0("Full_Cleaned_Raw_Data_", Sys.Date(), "_", random_num, ".csv")
-    },
-    content = function(file) {
-      write.csv(base_data(), file, row.names = FALSE)
-    }
-  )
 }
 
 # Run the application 
