@@ -1,9 +1,10 @@
-# Load necessary libraries (reduced to 5 core packages)
+# Load necessary libraries (reduced from 8 to 5)
 library(shiny)
 library(bslib)
 library(readxl)
 library(dplyr)
 library(DT)
+
 
 # --- CORRECTED BASE R HELPER FOR FILLING DOWN ---
 locf <- function(x) {
@@ -76,7 +77,7 @@ ui <- page_fluid(
             <b>SARI:</b> J22 / J18.9<br>
             <b>Animal Bites:</b> Dog (W54), Snake (T63.0/X20)
             <br><br>
-            <i>Note: All Chapter 1 (A00-B99) infectious diseases (excluding Tinea B35-B36) are automatically captured.</i>
+            <i>Note: All Chapter 1 (A00-B99) infectious diseases are automatically captured.</i>
           ")
         )
       ),
@@ -104,7 +105,7 @@ ui <- page_fluid(
     ),
     
     # --- MAIN PANEL CONTENTS ---
-    # Epidemiological Summary Metrics (Streamlined to 2 key cards)
+    # Epidemiological Summary Metrics
     layout_columns(
       fill = FALSE,
       value_box(
@@ -116,6 +117,11 @@ ui <- page_fluid(
         title = "IDSP Cases Flagged",
         value = textOutput("idsp_cases"),
         theme = "primary" 
+      ),
+      value_box(
+        title = "Top Syndrome",
+        value = textOutput("top_syndrome"),
+        theme = "info"
       )
     ),
     
@@ -157,7 +163,7 @@ server <- function(input, output, session) {
     
     raw_data <- raw_data[-c(1:5), ]
     
-    # Base R string manipulation & filling
+    # Base R string manipulation & filling (replacing stringr and tidyr)
     raw_data$disease_name <- ifelse(startsWith(as.character(raw_data[[2]]), "Disease Name :"), 
                                     as.character(raw_data[[2]]), NA_character_)
     raw_data$disease_name <- locf(raw_data$disease_name)
@@ -176,7 +182,7 @@ server <- function(input, output, session) {
     raw_data
   })
   
-  # Reactive 2: Filtered IDSP Line List (Excluding Tinea B35.x & B36.x)
+  # Reactive 2: Filtered IDSP Line List
   filtered_data <- reactive({
     req(base_data())
     
@@ -191,10 +197,9 @@ server <- function(input, output, session) {
     
     is_infectious <- grepl("^[AB]", df$`ICD-10 code`)
     is_syndrome <- df$icd_base %in% idsp_other_syndromes
-    is_tinea <- df$icd_base %in% c("B35", "B36")
     
     df %>%
-      filter((is_infectious | is_syndrome) & !is_tinea) %>%
+      filter(is_infectious | is_syndrome) %>%
       select(Patient.Name, Insurance.No., Diagnosis.Date, `ICD-10 code`, disease_name, Specialisation) %>%
       rename(`IP Number` = Insurance.No.)
   })
@@ -208,6 +213,15 @@ server <- function(input, output, session) {
   output$idsp_cases <- renderText({
     req(filtered_data())
     nrow(filtered_data())
+  })
+  
+  output$top_syndrome <- renderText({
+    req(filtered_data())
+    df <- filtered_data()
+    if(nrow(df) == 0) return("None")
+    
+    top_icd <- df %>% count(`ICD-10 code`, sort = TRUE) %>% slice(1) %>% pull(`ICD-10 code`)
+    return(top_icd)
   })
   
   # --- RENDER TABLES & DOWNLOAD BUTTONS ---
